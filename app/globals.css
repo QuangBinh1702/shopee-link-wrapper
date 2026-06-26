@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@theme {
+  --color-rose-50: #fff1f2;
+  --color-rose-100: #ffe4e6;
+  --color-rose-200: #fecdd3;
+  --color-rose-300: #fda4af;
+  --color-rose-400: #fb7185;
+  --color-rose-500: #f43f5e;
+  --color-rose-600: #e11d48;
+
+  --color-blush-100: #fff5f5;
+  --color-blush-200: #ffebee;
+  --color-blush-300: #fce4ec;
+
+  --color-glass: rgba(255, 255, 255, 0.72);
+  --color-glass-border: rgba(255, 255, 255, 0.8);
+  --color-glass-shadow: rgba(231, 120, 140, 0.08);
+}
+
+body {
+  min-height: 100dvh;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(251, 113, 133, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 0% 80%, rgba(124, 155, 255, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 100% 80%, rgba(255, 138, 101, 0.06) 0%, transparent 60%),
+    var(--color-blush-100);
+}
+
+@keyframes fade-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-fade-slide-up {
+  animation: fade-slide-up 0.35s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-slide-up {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
