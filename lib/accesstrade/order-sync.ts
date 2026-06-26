@@ -92,7 +92,7 @@ export async function syncOrders() {
                 {
                   $inc: {
                     pendingBalance: -exists.userShare,
-                    balance: exists.userShare,
+                    holdBalance: exists.userShare,
                     totalEarned: exists.userShare,
                   },
                 }
@@ -155,7 +155,7 @@ export async function syncOrders() {
           { userId },
           {
             $inc: {
-              balance: shares.userShare,
+              holdBalance: shares.userShare,
               totalEarned: shares.userShare,
             },
           },
@@ -199,9 +199,49 @@ export async function syncOrders() {
   if (newApprovedCount > 0 && GROUP_ID) {
     await sendMessage(
       GROUP_ID,
-      `🛎 <b>Có đơn hàng mới được duyệt!</b>\n\nCác bạn gõ #donhang để kiểm tra đơn của mình nhé.\nGõ #vitien để xem số dư đã được cập nhật.`
+      `🛎 <b>Có đơn hàng mới được duyệt!</b>\n\nCác bạn gõ #donhang để kiểm tra đơn của mình nhé.\nGõ #vitien để xem số dư.`
     );
   }
 
-  return { newApprovedCount, newPendingCount };
+  const paidCount = await processPayouts();
+
+  return { newApprovedCount, newPendingCount, paidCount };
+}
+
+async function processPayouts(): Promise<number> {
+  const today = new Date();
+  const day = today.getDate();
+  const month = today.getMonth();
+  const year = today.getFullYear();
+
+  let periodStart: Date | null = null;
+  if (day >= 18 && day < 25) {
+    periodStart = new Date(year, month, 18);
+  } else if (day >= 25) {
+    periodStart = new Date(year, month, 25);
+  }
+
+  if (!periodStart) return 0;
+
+  const users = await TelegramUser.find({ holdBalance: { $gt: 0 } });
+  let paidCount = 0;
+
+  for (const user of users) {
+    if (user.lastPayoutAt && user.lastPayoutAt >= periodStart) continue;
+
+    user.balance += user.holdBalance;
+    user.holdBalance = 0;
+    user.lastPayoutAt = today;
+    await user.save();
+    paidCount++;
+  }
+
+  if (paidCount > 0 && OWNER_CHAT_ID) {
+    await sendMessage(
+      OWNER_CHAT_ID,
+      `✅ Đã chuyển <b>holdBalance → balance</b> cho <b>${paidCount}</b> người dùng (kỳ thanh toán AccessTrade).`
+    );
+  }
+
+  return paidCount;
 }

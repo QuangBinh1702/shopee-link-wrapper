@@ -8,7 +8,9 @@ export interface ITelegramUser extends Document {
   bankAccount?: string;
   balance: number;
   pendingBalance: number;
+  holdBalance: number;
   totalEarned: number;
+  lastPayoutAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -22,7 +24,9 @@ const TelegramUserSchema = new Schema<ITelegramUser>(
     bankAccount: String,
     balance: { type: Number, default: 0 },
     pendingBalance: { type: Number, default: 0 },
+    holdBalance: { type: Number, default: 0 },
     totalEarned: { type: Number, default: 0 },
+    lastPayoutAt: Date,
   },
   { timestamps: true }
 );

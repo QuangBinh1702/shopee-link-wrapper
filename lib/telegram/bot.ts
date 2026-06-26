@@ -54,7 +54,7 @@ export function extractCommand(text: string): {
   command: string;
   args: string;
 } | null {
-  const match = text.match(/^#(\w+)(?:[_\s](.*))?$/);
+  const match = text.match(/^#([a-zA-Z0-9]+)(?:[_\s](.*))?$/);
   if (!match) return null;
   return { command: match[1].toLowerCase(), args: (match[2] ?? "").trim() };
 }

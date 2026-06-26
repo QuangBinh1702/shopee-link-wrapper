@@ -37,9 +37,13 @@ Mình sẽ hướng dẫn mọi người cách mua sắm trên Shopee để đư
 ❌ Không xem live hoặc video khi mua vì sẽ ko được hoa hồng
 ❌ Không bấm vào link của người khác hay áp mã giảm giá của người khác sau khi đã bấm link mình gửi
 
-<b>🔸Bước 4:</b> Các đơn bạn đặt từ 00:00 - 23:59 hôm nay thì sang sáng ngày mai khi mình thông báo có chuyển đổi từ Shopee lên nhóm thì mn nhắn #donhang và #vitien lên nhóm để kiểm tra nhé
+<b>🔸Bước 4:</b> Shopee đối soát đơn sau <b>2-4 tháng</b>. Khi AccessTrade duyệt, tiền tạm giữ ở mục "🔄 chờ thanh toán".
 
-<b>🔸Bước 5:</b> Sau khi bạn ấn đã nhận hàng trên app Shopee tiền sẽ xuống phần đã hoàn thành và sau 3 ngày sẽ xuống phần có thể rút ngay và chia với tỉ lệ 8-2 sau khi trừ (10% thuế Shopee). Cách tính như sau: ví dụ sản phẩm có hoa hồng 100k thì hh bạn nhận = (100k - 10%)*80% = 72.000đ
+<b>🔸Bước 5:</b> AccessTrade thanh toán cho chủ nhóm vào <b>ngày 18 và 25</b> hàng tháng. Sau đó bot mới chuyển vào "💵 số dư khả dụng" để bạn rút.
+
+<b>🔸Bước 6:</b> Dùng #ruttien để rút. Chủ nhóm chuyển khoản trong 3 ngày làm việc.
+
+<b>💵 Cách tính:</b> HH gốc → trừ 10% thuế Shopee → bạn nhận 80%. VD: 100k → (100k - 10%) × 80% = <b>72.000đ</b>
 
 <b>🟢 Các câu lệnh:</b>
 
@@ -211,6 +215,7 @@ async function handleViTien(
     "",
     `💵 Số dư khả dụng: <b>${formatCurrency(user.balance)}</b>`,
     `⏳ Hoa hồng chờ duyệt: <b>${formatCurrency(user.pendingBalance)}</b>`,
+    `🔄 Hoa hồng chờ thanh toán từ AccessTrade: <b>${formatCurrency(user.holdBalance)}</b>`,
     `📈 Tổng đã nhận: <b>${formatCurrency(user.totalEarned)}</b>`,
   ];
 
