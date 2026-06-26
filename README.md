@@ -11,6 +11,7 @@ Rút gọn link Shopee — dán link sản phẩm, nhận link gọn đẹp kèm
 - **Validation:** Zod
 - **Slug:** nanoid (custom alphabet)
 - **Affiliate:** AccessTrade API
+- **Telegram Bot:** Webhook-based Telegram bot cho nhóm mua hộ
 - **Test:** Vitest + Testing Library + Playwright
 
 ## Quick Start
@@ -95,6 +96,11 @@ Sau khi thêm, Redeploy project.
 | `SHORT_URL_EXPAND_TIMEOUT_MS` | `2000` | Timeout mỗi hop expand (ms) |
 | `SHORT_URL_EXPAND_MAX_REDIRECTS` | `10` | Số hop tối đa khi expand |
 | `SHORT_URL_EXPAND_MAX_TOTAL_MS` | `8000` | Tổng thời gian tối đa expand (ms) |
+| `TELEGRAM_BOT_TOKEN` | — | Token từ @BotFather |
+| `TELEGRAM_GROUP_ID` | — | Chat ID nhóm Telegram (số âm với group) |
+| `TELEGRAM_OWNER_ID` | — | User ID của bạn (để nhận thông báo đơn hàng) |
+| `TELEGRAM_OWNER_NAME` | `Vy Tô` | Tên chủ nhóm hiển thị trong hướng dẫn |
+| `CRON_SECRET` | — | Bearer token bảo vệ cron endpoint |
 
 ## API
 
@@ -114,6 +120,79 @@ Sau khi thêm, Redeploy project.
 ### `GET /[slug]/shopee`
 
 Redirect 302 tới affiliate URL + atomic click tracking.
+
+## Telegram Bot
+
+Bot tự động trả lời trong nhóm Telegram với các chức năng:
+
+- **Chào mừng** thành viên mới + hướng dẫn mua hàng
+- **Tự động** nhận diện link Shopee → trả link chính thức
+- **#donhang** — kiểm tra đơn hàng đã mua
+- **#vitien** — kiểm tra số dư + tổng đã nhận
+- **#thongtin** — xem thông tin ngân hàng
+- **#thongtin_tenNH_stk** — lưu thông tin ngân hàng
+- **#ruttien_sotien** — yêu cầu rút tiền (tối thiểu 50k)
+
+### Setup
+
+1. Lên [@BotFather](https://t.me/BotFather) → `/newbot` → lấy token
+2. Thêm bot vào nhóm với quyền admin (để đọc tin nhắn)
+3. Lấy Group ID: thêm [@getidsbot](https://t.me/getidsbot) vào nhóm, gửi `/id`
+4. Điền `.env`:
+   ```
+   TELEGRAM_BOT_TOKEN=123456:ABC-DEF1234
+   TELEGRAM_GROUP_ID=-1001234567890
+   TELEGRAM_OWNER_NAME=
+   ```
+5. Set webhook (chạy 1 lần):
+   ```bash
+   curl -X POST "https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://site.com/api/telegram"
+   ```
+
+Webhook tự động nhận update từ Telegram và xử lý tại `app/api/telegram/route.ts`.
+
+## Order Sync (AccessTrade → Telegram)
+
+Hệ thống tự động đồng bộ đơn hàng từ AccessTrade, tính hoa hồng và thông báo qua Telegram.
+
+### Luồng tiền
+
+```
+Shopee → AccessTrade (hoa hồng gốc)
+  → Trừ 10% thuế
+  → Chia 80% cho người mua, 20% cho chủ bot
+  → Cộng vào số dư TelegramUser
+  → Owner nhận thông báo → chuyển khoản thủ công
+```
+
+### Cách chạy đồng bộ
+
+**Cách 1 — Vercel Cron (tự động)**: thêm vào `vercel.json`:
+```json
+{
+  "crons": [
+    {
+      "path": "/api/cron/sync-orders",
+      "schedule": "0 6 * * *"
+    }
+  ]
+}
+```
+Set `CRON_SECRET` trên Vercel, Vercel tự gọi mỗi ngày 6h sáng.
+
+**Cách 2 — Gọi tay**: dùng curl mỗi khi muốn sync:
+```bash
+curl https://site.com/api/cron/sync-orders
+```
+
+**Cách 3 — Gọi có auth**: dùng `CRON_SECRET` để bảo vệ:
+```bash
+curl -H "Authorization: Bearer your-secret" https://site.com/api/cron/sync-orders
+```
+
+Khi có đơn mới được duyệt, bot sẽ:
+1. Gửi thông báo riêng cho **owner** (`TELEGRAM_OWNER_ID`)
+2. Gửi thông báo vào **group** để member kiểm tra `#donhang` / `#vitien`
 
 ## Production Checklist
 
@@ -136,6 +215,7 @@ Trước khi launch, kiểm tra:
 lib/
   shopee/            # Core link engine (parse, expand, normalize)
   accesstrade/       # AccessTrade affiliate client
+  telegram/          # Telegram bot (client + handlers)
   db/                # MongoDB connection + models
   errors.ts          # Typed error system
   response.ts        # API response helpers
@@ -143,6 +223,7 @@ lib/
   slug.ts            # Slug generation
 app/
   api/wrap/route.ts  # POST /api/wrap
+  api/telegram/      # POST telegram webhook
   [slug]/shopee/     # GET redirect route
   page.tsx           # Landing page
 components/

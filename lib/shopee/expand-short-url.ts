@@ -19,6 +19,7 @@ export function isShortUrl(input: string): boolean {
 interface ExpandOptions {
   timeoutMs?: number;
   maxRedirects?: number;
+  maxTotalMs?: number;
 }
 
 const rawTimeout = process.env.SHORT_URL_EXPAND_TIMEOUT_MS;
@@ -35,12 +36,13 @@ export async function expandShortUrl(
 ): Promise<string> {
   const timeoutMs = options?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const maxRedirects = options?.maxRedirects ?? DEFAULT_MAX_REDIRECTS;
+  const maxTotalMs = options?.maxTotalMs ?? DEFAULT_MAX_TOTAL_MS;
   const visitedUrls = new Set<string>();
   let currentUrl = input;
   const startedAt = Date.now();
 
   for (let hop = 0; hop <= maxRedirects; hop++) {
-    if (Date.now() - startedAt > DEFAULT_MAX_TOTAL_MS) {
+    if (Date.now() - startedAt > maxTotalMs) {
       throw new AppError(ErrorCodes.SHORT_URL_EXPAND_FAILED);
     }
 

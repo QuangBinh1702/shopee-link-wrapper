@@ -54,17 +54,16 @@ export async function POST(request: NextRequest) {
       affiliateUrl = normalized.canonicalUrl;
     }
 
+    await connectDb();
+
     const slug = await createUniqueSlug(async (s) => {
       try {
-        await connectDb();
         const existing = await LinkMap.findOne({ slug: s });
         return !!existing;
       } catch {
         return false;
       }
     });
-
-    await connectDb();
     await LinkMap.create({
       slug,
       shopId: normalized.shopId,
